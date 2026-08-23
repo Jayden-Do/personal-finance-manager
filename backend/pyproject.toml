@@ -8,6 +8,8 @@ dependencies = [
     "alembic>=1.19.1",
     "asyncpg>=0.31.0",
     "fastapi[standard]>=0.141.1",
+    "psycopg[binary]>=3.3.4",
+    "python-dotenv>=1.2.3",
     "sqlmodel>=0.0.39",
 ]
 
