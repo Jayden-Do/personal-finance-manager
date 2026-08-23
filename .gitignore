@@ -35,6 +35,15 @@ htmlcov/
 .mypy_cache/
 
 # =========================
+# Node / Next.js
+# =========================
+
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# =========================
 # IDE / Editor
 # =========================
 
