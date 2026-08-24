@@ -6,11 +6,11 @@ class UserService:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
-    def register_user(
+    def create_user(
         self,
         username: str,
         email: str,
-        password: str,
+        password_hash: str,
     ) -> User:
 
         existing_user = self.user_repository.get_by_username(username)
@@ -26,7 +26,7 @@ class UserService:
         user = User(
             username=username,
             email=email,
-            password_hash=password,  # temporary
+            password_hash=password_hash,
         )
 
         return self.user_repository.create(user)

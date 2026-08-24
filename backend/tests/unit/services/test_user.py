@@ -1,85 +1,88 @@
+from unittest.mock import Mock
+
 import pytest
 
 from app.db.models.user import User
 from app.services.user import UserService
 
 
-class FakeUserRepository:
-    def __init__(self):
-        self.users = []
-
-    def get_by_username(self, username: str):
-        for user in self.users:
-            if user.username == username:
-                return user
-
-        return None
-
-    def get_by_email(self, email: str):
-        for user in self.users:
-            if user.email == email:
-                return user
-
-        return None
-
-    def create(self, user: User):
-        user.id = len(self.users) + 1
-        self.users.append(user)
-
-        return user
+@pytest.fixture
+def user_repository():
+    return Mock()
 
 
-def test_register_user_successfully():
-    repository = FakeUserRepository()
-    service = UserService(repository)
+@pytest.fixture
+def user_service(user_repository):
+    return UserService(user_repository)
 
-    user = service.register_user(
+
+def test_create_user_success(user_service, user_repository):
+    user_repository.get_by_username.return_value = None
+    user_repository.get_by_email.return_value = None
+
+    expected_user = User(
+        id=1,
         username="anne",
         email="anne@example.com",
-        password="password123",
+        password_hash="hashed-password",
     )
 
-    assert user.id == 1
-    assert user.username == "anne"
-    assert user.email == "anne@example.com"
-    assert user.password_hash == "password123"
+    user_repository.create.return_value = expected_user
 
-
-def test_register_user_with_existing_username():
-    repository = FakeUserRepository()
-    service = UserService(repository)
-
-    repository.create(
-        User(
-            username="anne",
-            email="anne@example.com",
-            password_hash="hash",
-        )
+    result = user_service.create_user(
+        username="anne",
+        email="anne@example.com",
+        password_hash="hashed-password",
     )
+
+    assert result == expected_user
+
+    user_repository.create.assert_called_once()
+
+    created_user = user_repository.create.call_args.args[0]
+
+    assert created_user.username == "anne"
+    assert created_user.email == "anne@example.com"
+    assert created_user.password_hash == "hashed-password"
+
+
+def test_create_user_duplicate_username(user_service, user_repository):
+    existing_user = User(
+        id=1,
+        username="anne",
+        email="anne@example.com",
+        password_hash="hashed-password",
+    )
+
+    user_repository.get_by_username.return_value = existing_user
 
     with pytest.raises(ValueError, match="Username already exists"):
-        service.register_user(
+        user_service.create_user(
             username="anne",
-            email="another@example.com",
-            password="password123",
+            email="new@example.com",
+            password_hash="hashed-password",
         )
 
+    user_repository.create.assert_not_called()
+    user_repository.get_by_email.assert_not_called()
 
-def test_register_user_with_existing_email():
-    repository = FakeUserRepository()
-    service = UserService(repository)
 
-    repository.create(
-        User(
-            username="anne",
-            email="anne@example.com",
-            password_hash="hash",
-        )
+def test_create_user_duplicate_email(user_service, user_repository):
+    existing_user = User(
+        id=1,
+        username="anne",
+        email="anne@example.com",
+        password_hash="hashed-password",
     )
 
+    user_repository.get_by_username.return_value = None
+    user_repository.get_by_email.return_value = existing_user
+
     with pytest.raises(ValueError, match="Email already exists"):
-        service.register_user(
-            username="another",
+        user_service.create_user(
+            username="newuser",
             email="anne@example.com",
-            password="password123",
+            password_hash="hashed-password",
         )
+
+    user_repository.create.assert_not_called()
