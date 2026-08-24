@@ -1,5 +1,6 @@
 from app.db.models.user import User
 from app.repositories.user import UserRepository
+from app.exceptions.user import EmailAlreadyExistsError, UsernameAlreadyExistsError
 
 
 class UserService:
@@ -16,12 +17,12 @@ class UserService:
         existing_user = self.user_repository.get_by_username(username)
 
         if existing_user:
-            raise ValueError("Username already exists")
+            raise UsernameAlreadyExistsError()
 
         existing_user = self.user_repository.get_by_email(email)
 
         if existing_user:
-            raise ValueError("Email already exists")
+            raise EmailAlreadyExistsError()
 
         user = User(
             username=username,

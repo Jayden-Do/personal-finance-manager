@@ -4,6 +4,7 @@ import pytest
 
 from app.db.models.user import User
 from app.services.user import UserService
+from app.exceptions.user import EmailAlreadyExistsError, UsernameAlreadyExistsError
 
 
 @pytest.fixture
@@ -56,7 +57,7 @@ def test_create_user_duplicate_username(user_service, user_repository):
 
     user_repository.get_by_username.return_value = existing_user
 
-    with pytest.raises(ValueError, match="Username already exists"):
+    with pytest.raises(UsernameAlreadyExistsError):
         user_service.create_user(
             username="anne",
             email="new@example.com",
@@ -78,7 +79,7 @@ def test_create_user_duplicate_email(user_service, user_repository):
     user_repository.get_by_username.return_value = None
     user_repository.get_by_email.return_value = existing_user
 
-    with pytest.raises(ValueError, match="Email already exists"):
+    with pytest.raises(EmailAlreadyExistsError):
         user_service.create_user(
             username="newuser",
             email="anne@example.com",
