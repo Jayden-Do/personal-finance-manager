@@ -1,6 +1,7 @@
+from fastapi import HTTPException, status
+
 from app.db.models.user import User
 from app.repositories.user import UserRepository
-from app.exceptions.user import EmailAlreadyExistsError, UsernameAlreadyExistsError
 
 
 class UserService:
@@ -14,15 +15,17 @@ class UserService:
         password_hash: str,
     ) -> User:
 
-        existing_user = self.user_repository.get_by_username(username)
+        if self.user_repository.get_by_username(username):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Username already exists",
+            )
 
-        if existing_user:
-            raise UsernameAlreadyExistsError()
-
-        existing_user = self.user_repository.get_by_email(email)
-
-        if existing_user:
-            raise EmailAlreadyExistsError()
+        if self.user_repository.get_by_email(email):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already exists",
+            )
 
         user = User(
             username=username,
@@ -31,3 +34,9 @@ class UserService:
         )
 
         return self.user_repository.create(user)
+
+    def get_user_by_name(self, username: str) -> User | None:
+        return self.user_repository.get_by_username(username)
+
+    def get_user_by_id(self, id: int) -> User | None:
+        return self.user_repository.get_by_id(id)

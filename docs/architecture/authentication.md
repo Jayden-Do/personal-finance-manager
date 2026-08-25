@@ -59,3 +59,24 @@ Client
 → identify User
 → authorize request
 → endpoint
+
+## JWT Design
+
+### Payload
+
+- `sub`: User ID
+- `username`: Username
+- `exp`: Token expiration timestamp
+
+### Token Lifetime
+
+Access tokens expire after 2 days.
+
+### Algorithm
+
+HS256.
+
+### Secret
+
+The JWT signing secret is provided through environment configuration
+and must not be committed to source control.

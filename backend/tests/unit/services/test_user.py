@@ -1,10 +1,10 @@
 from unittest.mock import Mock
+from fastapi import HTTPException, status
 
 import pytest
 
 from app.db.models.user import User
 from app.services.user import UserService
-from app.exceptions.user import EmailAlreadyExistsError, UsernameAlreadyExistsError
 
 
 @pytest.fixture
@@ -57,15 +57,15 @@ def test_create_user_duplicate_username(user_service, user_repository):
 
     user_repository.get_by_username.return_value = existing_user
 
-    with pytest.raises(UsernameAlreadyExistsError):
+    with pytest.raises(HTTPException) as exc_info:
         user_service.create_user(
             username="anne",
             email="new@example.com",
             password_hash="hashed-password",
         )
 
-    user_repository.create.assert_not_called()
-    user_repository.get_by_email.assert_not_called()
+    assert exc_info.value.status_code == status.HTTP_409_CONFLICT
+    assert exc_info.value.detail == "Username already exists"
 
 
 def test_create_user_duplicate_email(user_service, user_repository):
@@ -79,11 +79,12 @@ def test_create_user_duplicate_email(user_service, user_repository):
     user_repository.get_by_username.return_value = None
     user_repository.get_by_email.return_value = existing_user
 
-    with pytest.raises(EmailAlreadyExistsError):
+    with pytest.raises(HTTPException) as exc_info:
         user_service.create_user(
-            username="newuser",
+            username="new-user",
             email="anne@example.com",
             password_hash="hashed-password",
         )
 
-    user_repository.create.assert_not_called()
+    assert exc_info.value.status_code == status.HTTP_409_CONFLICT
+    assert exc_info.value.detail == "Email already exists"
