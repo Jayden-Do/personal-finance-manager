@@ -12,6 +12,7 @@ from app.core.config import DATABASE_URL
 from app.db.models.user import User 
 from app.db.models.transaction import Transaction  
 from app.db.models.plugin import Plugin  
+from app.db.models.user_plugin import UserPlugin  
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
